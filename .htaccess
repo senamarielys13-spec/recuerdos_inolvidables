@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteBase /recuerdos_inolvidables/
+
+# Evita que las peticiones que ya apuntan a public vuelvan a redirigirse
+RewriteCond %{REQUEST_URI} !^/recuerdos_inolvidables/public/
+RewriteRule ^(.*)$ public/$1 [L]
