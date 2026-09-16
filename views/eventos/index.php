@@ -1,5 +1,8 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
+// se hace la modificacion del index de
+// forma temporal
+
 <section class="events-header">
     <div class="header-action">
         <h1>Mis Eventos de 15 Años</h1>
