@@ -6,37 +6,30 @@ class AuthController {
     
     // Mostrar y procesar Registro
     public function register() {
-        $error = '';
-        $success = '';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $nombre   = $_POST['nombre'] ?? '';
+        $email    = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nombre = trim($_POST['nombre'] ?? '');
-            $email = trim($_POST['email'] ?? '');
-            $password = $_POST['password'] ?? '';
-            $telefono = trim($_POST['telefono'] ?? '');
-            $id_rol = isset($_POST['id_rol']) ? (int)$_POST['id_rol'] : 2; // Default 2 (Cliente)
+        $usuarioModel = new Usuario();
 
-            if (empty($nombre) || empty($email) || empty($password)) {
-                $error = "Por favor completa todos los campos obligatorios.";
-            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $error = "El formato de correo electrónico no es válido.";
-            } else {
-                $usuarioModel = new Usuario();
-
-                if ($usuarioModel->emailExiste($email)) {
-                    $error = "El correo electrónico ya está registrado.";
-                } else {
-                    if ($usuarioModel->registrar($nombre, $email, $password, $telefono, $id_rol)) {
-                        $success = "¡Registro exitoso! Ya puedes iniciar sesión.";
-                    } else {
-                        $error = "Ocurrió un error al registrar la cuenta. Inténtalo de nuevo.";
-                    }
-                }
-            }
+        if ($usuarioModel->emailExiste($email)) {
+            $error = "El correo ya se encuentra registrado.";
+            require_once __DIR__ . '/../views/auth/register.php';
+            return;
         }
 
+        if ($usuarioModel->registrar($nombre, $email, $password)) {
+            header('Location: index.php?controller=auth&action=login');
+            exit();
+        } else {
+            $error = "Ocurrió un error al crear la cuenta.";
+            require_once __DIR__ . '/../views/auth/register.php';
+        }
+    } else {
         require_once __DIR__ . '/../views/auth/register.php';
     }
+}
 
     // Mostrar y procesar Login
     public function login() {

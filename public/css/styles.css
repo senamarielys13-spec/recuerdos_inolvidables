@@ -16,6 +16,10 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+header, nav.navbar {
+    background-color: #faf8f5 !important;
+}
+
 body {
     background-color: var(--bg-light);
     color: var(--text-dark);
@@ -46,10 +50,17 @@ body {
     font-weight: bold;
     color: var(--primary-color);
     text-decoration: none;
+    display: flex; 
+    align-items: center;
 }
 
-.logo span {
-    color: var(--text-dark);
+.logo-text {
+    color: #e6196e; /* Rosa fuerte para 'Recuerdos' */
+    text-decoration: none;
+}
+
+.logo-text span {
+    color: #333333; /* Gris oscuro para 'Inolvidables' */
 }
 
 .nav-links {
@@ -179,11 +190,57 @@ body {
 
 /* Footer */
 .footer {
-    background-color: var(--white);
-    border-top: 1px solid var(--border-color);
+    background-color: #ffd1dc5d; 
+    padding: 40px 0 20px;
+    margin-top: 50px;
+    color: #333;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.footer-section h4 {
+    color: #e6196e; /* El color rosa fuerte de tus botones */
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-links a, .social-links a {
+    text-decoration: none;
+    color: #555;
+    transition: color 0.3s;
+}
+
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.footer-links a:hover, .social-links a:hover {
+    color: #f1bcd2;
+    font-weight: bold;
+}
+
+.footer-bottom {
     text-align: center;
-    padding: 1.5rem 0;
-    margin-top: auto;
+    border-top: 2px solid white; /* Una línea blanca sutil para separar */
+    padding-top: 20px;
+    font-size: 0.9rem;
 }
 
 
@@ -285,7 +342,6 @@ body {
     padding: 0.4rem 1rem;
     border-radius: 20px;
 }
-
 
 /* Estilos CRUD Eventos */
 .header-action {
