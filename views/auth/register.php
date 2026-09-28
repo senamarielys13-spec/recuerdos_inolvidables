@@ -11,7 +11,7 @@
 
         <?php if (!empty($success)): ?>
             <div class="alert alert-success">
-                <?php echo htmlspecialchars($success); ?> 
+                <?php echo htmlspecialchars($success); ?>
                 <a href="index.php?controller=auth&action=login">Iniciar sesión</a>
             </div>
         <?php endif; ?>
@@ -40,6 +40,7 @@
             <div class="form-group">
                 <label for="id_rol">Tipo de Cuenta</label>
                 <select name="id_rol" id="id_rol" class="form-select">
+                    <option value="1">Administrador</option>
                     <option value="2">Organizador / Quinceañera (Cliente)</option>
                     <option value="3">Proveedor de Servicios</option>
                 </select>

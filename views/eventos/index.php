@@ -1,7 +1,7 @@
-<?php include __DIR__ . '/../layouts/header.php'; ?>
-
-// se hace la modificacion del index de
-// forma temporal
+<?php 
+// se hace la modificacion del index de forma temporal
+require_once __DIR__ . '/../layouts/header.php'; 
+?>
 
 <section class="events-header">
     <div class="header-action">
