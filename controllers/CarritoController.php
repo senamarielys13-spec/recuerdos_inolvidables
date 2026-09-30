@@ -12,47 +12,52 @@ class CarritoController {
         }
     }
 
-    // Cargar la vista principal del carrito
+    // Muestra la vista del carrito
     public function index() {
+        $carrito = $_SESSION['carrito'];
         require_once __DIR__ . '/../views/carrito/index.php';
     }
 
-    // Agregar un ítem al carrito
+    // Agrega un servicio/proveedor al carrito
     public function agregar() {
-        $id = $_GET['id'] ?? null;
-        $nombre = $_POST['nombre'] ?? $_GET['nombre'] ?? 'Servicio de Evento';
-        $precio = $_POST['precio'] ?? $_GET['precio'] ?? 0;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            $nombre = $_POST['nombre'] ?? 'Servicio / Cotización';
+            $precio = floatval($_POST['precio'] ?? 0);
+            $cantidad = intval($_POST['cantidad'] ?? 1);
 
-        if ($id) {
-            if (isset($_SESSION['carrito'][$id])) {
-                $_SESSION['carrito'][$id]['cantidad'] += 1;
-            } else {
-                $_SESSION['carrito'][$id] = [
-                    'nombre'   => $nombre,
-                    'precio'   => (float)$precio,
-                    'cantidad' => 1
-                ];
+            if ($id) {
+                if (isset($_SESSION['carrito'][$id])) {
+                    $_SESSION['carrito'][$id]['cantidad'] += $cantidad;
+                } else {
+                    $_SESSION['carrito'][$id] = [
+                        'id'       => $id,
+                        'nombre'   => $nombre,
+                        'precio'   => $precio,
+                        'cantidad' => $cantidad
+                    ];
+                }
             }
         }
-
-        header('Location: index.php?controller=carrito&action=index');
+        header("Location: index.php?controller=carrito&action=index");
         exit();
     }
 
-    // Eliminar un elemento específico
+    // Elimina un ítem específico
     public function eliminar() {
         $id = $_GET['id'] ?? null;
-        if ($id && isset($_SESSION['carrito'][$id])) {
+        if ($id !== null && isset($_SESSION['carrito'][$id])) {
             unset($_SESSION['carrito'][$id]);
         }
-        header('Location: index.php?controller=carrito&action=index');
+        header("Location: index.php?controller=carrito&action=index");
         exit();
     }
 
-    // Vaciar todo el carrito
+    // Vacía todo el carrito
     public function vaciar() {
         $_SESSION['carrito'] = [];
-        header('Location: index.php?controller=carrito&action=index');
+        header("Location: index.php?controller=carrito&action=index");
         exit();
     }
 }
+?>
