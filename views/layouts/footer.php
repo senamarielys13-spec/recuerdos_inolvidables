@@ -59,7 +59,7 @@
 
     <!-- Línea de Derechos Reservados -->
     <div style="max-width: 1200px; margin: 30px auto 0 auto; padding: 20px 20px 0 20px; border-top: 1px solid #f0f0f0; text-align: center; color: #888; font-size: 13px;">
-        &copy; <?= date('Y') ?> Recuerdos Inolvidables 15 — Todos los derechos reservados.
+        &copy; <?= date('Y') ?> Recuerdos Inolvidables 15 — Todos los derechos reservados. SENA CDM
     </div>
 </footer>
 </body>
