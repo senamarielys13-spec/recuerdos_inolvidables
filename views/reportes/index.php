@@ -1,32 +1,50 @@
 
+<
 <?php
+
 require_once __DIR__ . '/../layouts/header.php';
 
-$moneda = static function ($valor) {
-    return '$' . number_format(
-        (float) $valor,
-        0,
-        ',',
-        '.'
-    );
-};
-
+// Mostrar textos de manera segura.
 $esc = static function ($valor) {
     return htmlspecialchars(
-        (string) $valor,
+        (string) ($valor ?? ''),
         ENT_QUOTES,
         'UTF-8'
     );
 };
 
-$maxIngresos = 0;
+// Valores calculados desde ReporteController.
+$totalUsuarios = (int) ($totalUsuarios ?? 0);
+$totalProveedores = (int) ($totalProveedores ?? 0);
+$totalServicios = (int) ($totalServicios ?? 0);
+$totalContactos = (int) ($totalContactos ?? 0);
+$contactosMes = (int) ($contactosMes ?? 0);
+$proveedoresConsultados = (int) (
+    $proveedoresConsultados ?? 0
+);
 
-foreach ($ventasMensuales as $fila) {
-    $maxIngresos = max(
-        $maxIngresos,
-        (float) $fila['ingresos']
+$proveedoresMasConsultados =
+    $proveedoresMasConsultados ?? [];
+
+$contactosMensuales =
+    $contactosMensuales ?? [];
+
+$ultimosContactos =
+    $ultimosContactos ?? [];
+
+$proveedorMasConsultado =
+    $proveedorMasConsultado ?? null;
+
+// Máximo para representar las barras.
+$maxContactos = 0;
+
+foreach ($contactosMensuales as $fila) {
+    $maxContactos = max(
+        $maxContactos,
+        (int) $fila['total_contactos']
     );
 }
+
 ?>
 
 <style>
@@ -60,6 +78,7 @@ foreach ($ventasMensuales as $fila) {
 .ri-panel .ri-sub {
     color: #806b78;
     font-size: 14px;
+    line-height: 1.7;
     margin: 0 0 24px;
 }
 
@@ -70,11 +89,12 @@ foreach ($ventasMensuales as $fila) {
     font-weight: bold;
 }
 
-/* TARJETAS ESTADÍSTICAS */
+/* TARJETAS DE ESTADÍSTICAS */
 
 .ri-metricas {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
     gap: 14px;
     margin-bottom: 25px;
 }
@@ -89,19 +109,22 @@ foreach ($ventasMensuales as $fila) {
 
 .ri-metrica {
     padding: 20px;
+    min-width: 0;
 }
 
 .ri-metrica span {
     display: block;
     color: #816879;
     font-size: 13px;
+    line-height: 1.5;
 }
 
 .ri-metrica strong {
     display: block;
     font-size: 26px;
     color: #95466e;
-    margin: 11px 0 2px;
+    margin: 11px 0 5px;
+    overflow-wrap: anywhere;
 }
 
 /* SECCIONES */
@@ -121,7 +144,8 @@ foreach ($ventasMensuales as $fila) {
 
 .ri-admin-links {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -134,6 +158,7 @@ foreach ($ventasMensuales as $fila) {
     text-decoration: none;
     font-weight: bold;
     font-size: 14px;
+    transition: background .2s ease;
 }
 
 .ri-admin-links a:hover {
@@ -141,6 +166,10 @@ foreach ($ventasMensuales as $fila) {
 }
 
 /* TABLAS */
+
+.ri-tabla-contenedor {
+    overflow-x: auto;
+}
 
 .ri-panel table {
     border-collapse: collapse;
@@ -151,8 +180,9 @@ foreach ($ventasMensuales as $fila) {
 .ri-panel th,
 .ri-panel td {
     text-align: left;
-    padding: 10px 8px;
+    padding: 11px 9px;
     border-bottom: 1px solid #f1e2e9;
+    vertical-align: top;
 }
 
 .ri-panel th {
@@ -160,11 +190,15 @@ foreach ($ventasMensuales as $fila) {
     background: #fcf5f8;
 }
 
-/* GRÁFICOS DE VENTAS */
+.ri-panel td {
+    overflow-wrap: anywhere;
+}
+
+/* GRÁFICOS */
 
 .ri-bar-row {
     display: grid;
-    grid-template-columns: 75px 1fr 115px;
+    grid-template-columns: 85px 1fr 55px;
     gap: 12px;
     align-items: center;
     font-size: 13px;
@@ -194,12 +228,31 @@ foreach ($ventasMensuales as $fila) {
     color: #806a77;
 }
 
-/* ADAPTACIÓN A TABLETAS */
+.ri-nota-informativa {
+    background: #faf0f5;
+    border: 1px solid #ebd4df;
+    border-radius: 12px;
+    padding: 16px;
+    color: #795369;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.ri-panel .ri-contador {
+    display: inline-block;
+    background: #f7e8f0;
+    color: #91476b;
+    padding: 5px 11px;
+    border-radius: 30px;
+    font-weight: bold;
+}
+
+/* RESPONSIVE */
 
 @media (max-width: 800px) {
-
     .ri-metricas {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
     }
 
     .ri-panel-grid {
@@ -207,36 +260,31 @@ foreach ($ventasMensuales as $fila) {
     }
 
     .ri-admin-links {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
     }
 }
 
-/* ADAPTACIÓN A CELULARES */
-
 @media (max-width: 480px) {
-
     .ri-metricas,
     .ri-admin-links {
         grid-template-columns: 1fr;
     }
 
     .ri-bar-row {
-        grid-template-columns: 60px 1fr;
+        grid-template-columns: 70px 1fr 40px;
         gap: 6px;
-    }
-
-    .ri-bar-row strong {
-        grid-column: 2;
     }
 }
 
 </style>
 
-
 <!-- PANEL PRINCIPAL -->
 
-<section class="ri-panel"
-         aria-labelledby="titulo-panel">
+<section
+    class="ri-panel"
+    aria-labelledby="titulo-panel"
+>
 
     <span class="ri-eyebrow">
         RECUERDOS INOLVIDABLES · ADMINISTRACIÓN
@@ -247,61 +295,62 @@ foreach ($ventasMensuales as $fila) {
     </h1>
 
     <p class="ri-sub">
-        Resumen calculado a partir de la base de datos.
-        Solo se cuentan como ingresos las ventas
-        en estado Completado.
+        Estadísticas calculadas a partir de los
+        registros de usuarios, proveedores y
+        solicitudes de información por WhatsApp.
     </p>
-
 
     <!-- TARJETAS DE ESTADÍSTICAS -->
 
     <div class="ri-metricas">
 
         <div class="ri-metrica">
-
-            <span>Ingresos del mes</span>
+            <span>
+                Contactos iniciados
+            </span>
 
             <strong>
-                <?= $moneda($resumenMes['ingresos']) ?>
+                <?= $totalContactos ?>
             </strong>
 
             <span>
-                <?= (int) $resumenMes['compras'] ?>
-                compras completadas
+                Solicitudes registradas
             </span>
-
         </div>
 
         <div class="ri-metrica">
-
-            <span>Ingresos acumulados</span>
+            <span>
+                Contactos del mes
+            </span>
 
             <strong>
-                <?= $moneda($ingresosTotales) ?>
+                <?= $contactosMes ?>
             </strong>
 
             <span>
-                <?= $totalCompras ?>
-                compras completadas
+                Durante el mes actual
+            </span>
+        </div>
+
+        <div class="ri-metrica">
+            <span>
+                Proveedores consultados
             </span>
 
-        </div>
-
-        <div class="ri-metrica">
-
-            <span>Proveedores</span>
-
             <strong>
-                <?= $totalProveedores ?>
+                <?= $proveedoresConsultados ?>
             </strong>
 
-            <span>Registrados</span>
-
+            <span>
+                De <?= $totalProveedores ?>
+                proveedores registrados
+            </span>
         </div>
 
         <div class="ri-metrica">
-
-            <span>Usuarios</span>
+            <span>
+                Usuarios
+            </span>
 
             <strong>
                 <?= $totalUsuarios ?>
@@ -309,15 +358,51 @@ foreach ($ventasMensuales as $fila) {
 
             <span>
                 <?= $totalServicios ?>
-                productos o servicios
+                servicios registrados
             </span>
-
         </div>
 
     </div>
 
+    <!-- PROVEEDOR MÁS CONSULTADO -->
 
-    <!-- ADMINISTRACIÓN -->
+    <section class="ri-panel-seccion">
+
+        <h2>Proveedor más consultado</h2>
+
+        <?php if ($proveedorMasConsultado): ?>
+
+            <p>
+                <strong>
+                    <?= $esc(
+                        $proveedorMasConsultado[
+                            'nombre_comercial'
+                        ]
+                    ) ?>
+                </strong>
+            </p>
+
+            <p>
+                <span class="ri-contador">
+                    <?= (int) $proveedorMasConsultado[
+                        'total_contactos'
+                    ] ?>
+                    contactos iniciados
+                </span>
+            </p>
+
+        <?php else: ?>
+
+            <p class="ri-empty">
+                Todavía no hay solicitudes
+                de información registradas.
+            </p>
+
+        <?php endif; ?>
+
+    </section>
+
+    <!-- GESTIÓN ADMINISTRATIVA -->
 
     <section class="ri-panel-seccion">
 
@@ -353,36 +438,43 @@ foreach ($ventasMensuales as $fila) {
 
     </section>
 
-
-    <!-- GRÁFICOS Y PRODUCTOS -->
+    <!-- ESTADÍSTICAS GRÁFICAS -->
 
     <div class="ri-panel-grid">
 
-        <!-- VENTAS MENSUALES -->
+        <!-- CONTACTOS POR MES -->
 
         <section class="ri-panel-seccion">
 
-            <h2>Ventas por mes</h2>
+            <h2>Contactos por mes</h2>
 
-            <?php if (empty($ventasMensuales)): ?>
+            <?php if (empty($contactosMensuales)): ?>
 
                 <p class="ri-empty">
-                    Todavía no hay ventas completadas
-                    registradas para mostrar en el gráfico.
+                    Todavía no hay contactos
+                    registrados para mostrar
+                    en el gráfico.
                 </p>
 
             <?php else: ?>
 
-                <?php foreach ($ventasMensuales as $fila): ?>
+                <?php foreach (
+                    $contactosMensuales as $fila
+                ): ?>
 
                     <?php
-                    $ancho = $maxIngresos > 0
+
+                    $cantidad = (int) (
+                        $fila['total_contactos'] ?? 0
+                    );
+
+                    $ancho = $maxContactos > 0
                         ? round(
-                            100 * (float) $fila['ingresos']
-                            / $maxIngresos,
+                            100 * $cantidad / $maxContactos,
                             1
                         )
                         : 0;
+
                     ?>
 
                     <div class="ri-bar-row">
@@ -395,13 +487,13 @@ foreach ($ventasMensuales as $fila) {
 
                             <div
                                 class="ri-bar"
-                                style="width:<?= $ancho ?>%">
-                            </div>
+                                style="width: <?= $ancho ?>%;"
+                            ></div>
 
                         </div>
 
                         <strong>
-                            <?= $moneda($fila['ingresos']) ?>
+                            <?= $cantidad ?>
                         </strong>
 
                     </div>
@@ -412,83 +504,135 @@ foreach ($ventasMensuales as $fila) {
 
         </section>
 
-
-        <!-- PRODUCTOS MÁS VENDIDOS -->
+        <!-- PROVEEDORES MÁS CONSULTADOS -->
 
         <section class="ri-panel-seccion">
 
-            <h2>Productos más vendidos</h2>
+            <h2>Proveedores más consultados</h2>
 
-            <p class="ri-empty">
-                Esta estadística aún no puede calcularse:
-                la tabla de ventas registra el monto total,
-                pero no los productos ni las cantidades
-                de cada compra.
-            </p>
+            <?php if (
+                empty($proveedoresMasConsultados)
+            ): ?>
 
-            <p class="ri-empty">
-                Para generar esta clasificación necesitamos
-                registrar el detalle de los artículos
-                vendidos al confirmar cada pago.
-            </p>
+                <p class="ri-empty">
+                    Aún no se han registrado
+                    solicitudes de información.
+                </p>
+
+            <?php else: ?>
+
+                <div class="ri-tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Contactos</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <?php foreach (
+                                $proveedoresMasConsultados as $fila
+                            ): ?>
+
+                                <tr>
+
+                                    <td>
+                                        <?= $esc(
+                                            $fila[
+                                                'nombre_comercial'
+                                            ]
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= (int) $fila[
+                                            'total_contactos'
+                                        ] ?>
+                                    </td>
+
+                                </tr>
+
+                            <?php endforeach; ?>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            <?php endif; ?>
 
         </section>
 
     </div>
 
-
-    <!-- ÚLTIMAS VENTAS -->
+    <!-- HISTORIAL DE CONTACTOS -->
 
     <section class="ri-panel-seccion">
 
-        <h2>Últimas ventas registradas</h2>
+        <h2>
+            Últimos contactos iniciados
+        </h2>
 
-        <?php if (empty($ultimasVentas)): ?>
+        <?php if (empty($ultimosContactos)): ?>
 
             <p class="ri-empty">
-                No hay ventas registradas todavía.
+                No hay contactos registrados todavía.
             </p>
 
         <?php else: ?>
 
-            <div style="overflow-x:auto">
+            <div class="ri-tabla-contenedor">
 
                 <table>
 
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Fecha</th>
-                            <th>Concepto</th>
-                            <th>Monto</th>
-                            <th>Estado</th>
+                            <th>Fecha y hora</th>
+                            <th>Usuario</th>
+                            <th>Proveedor</th>
                         </tr>
                     </thead>
 
                     <tbody>
 
-                        <?php foreach ($ultimasVentas as $venta): ?>
+                        <?php foreach (
+                            $ultimosContactos as $contacto
+                        ): ?>
 
                             <tr>
 
                                 <td>
-                                    <?= $esc($venta['id_venta']) ?>
+                                    <?= (int) $contacto[
+                                        'id_solicitud'
+                                    ] ?>
                                 </td>
 
                                 <td>
-                                    <?= $esc($venta['fecha_venta']) ?>
+                                    <?= $esc(
+                                        $contacto['fecha_envio']
+                                    ) ?>
                                 </td>
 
                                 <td>
-                                    <?= $esc($venta['concepto']) ?>
+                                    <?= $esc(
+                                        $contacto[
+                                            'nombre_remitente'
+                                        ]
+                                    ) ?>
                                 </td>
 
                                 <td>
-                                    <?= $moneda($venta['monto']) ?>
-                                </td>
-
-                                <td>
-                                    <?= $esc($venta['estado']) ?>
+                                    <?= $esc(
+                                        $contacto[
+                                            'nombre_comercial'
+                                        ]
+                                    ) ?>
                                 </td>
 
                             </tr>
@@ -505,8 +649,35 @@ foreach ($ventasMensuales as $fila) {
 
     </section>
 
+    <!-- ACLARACIÓN SOBRE WHATSAPP -->
+
+    <div class="ri-nota-informativa">
+
+        <strong>
+            Información sobre los registros
+        </strong>
+
+        <p>
+            Los contactos registrados corresponden
+            a solicitudes de apertura de WhatsApp
+            realizadas desde Recuerdos Inolvidables.
+            No confirman que el mensaje haya sido
+            enviado, respondido o que se haya
+            realizado una contratación.
+        </p>
+
+        <p>
+            Los precios, acuerdos y pagos se gestionan
+            directamente entre clientes y proveedores,
+            fuera de la plataforma.
+        </p>
+
+    </div>
+
 </section>
 
 <?php
+
 require_once __DIR__ . '/../layouts/footer.php';
+
 ?>

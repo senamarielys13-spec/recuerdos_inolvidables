@@ -1,13 +1,46 @@
 
-
 <?php
-require_once __DIR__ . '/../layouts/header.php';
 
 /*
- * IMÁGENES DE LOS NUEVE PROVEEDORES
+ * RECUERDOS INOLVIDABLES
+ * Vista principal de proveedores
  *
- * Se conserva la distribución de fotografías.
+ * Funciones:
+ * 1. Mostrar el directorio de proveedores.
+ * 2. Registrar intentos de contacto por WhatsApp.
+ * 3. Guardar proveedores en Mis notas.
+ * 4. Mostrar herramientas al administrador.
  */
+
+// Iniciar sesión cuando sea necesario.
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Token de seguridad para Mis notas.
+
+if (empty($_SESSION['notas_csrf'])) {
+    $_SESSION['notas_csrf'] = bin2hex(
+        random_bytes(32)
+    );
+}
+
+// Token de seguridad para contactos por WhatsApp.
+
+if (empty($_SESSION['contacto_csrf'])) {
+    $_SESSION['contacto_csrf'] = bin2hex(
+        random_bytes(32)
+    );
+}
+
+// Identificar la cuenta administrativa.
+
+$esAdministradorProveedor =
+    !empty($_SESSION['user_id']) &&
+    (int) ($_SESSION['user_rol'] ?? 0) === 1;
+
+// Imágenes de las nueve tarjetas.
 
 $imagenes = [
     'img/paquetes/vestido.jpg',
@@ -23,13 +56,7 @@ $imagenes = [
 
 $indice_proveedor = 0;
 
-// Permisos de usuario.
-
-$esAdministradorProveedor =
-    isset($_SESSION['user_id']) &&
-    (int) ($_SESSION['user_rol'] ?? 0) === 1;
-
-// Función para mostrar textos de forma segura.
+// Escapar textos para mostrarlos de forma segura.
 
 $esc = static function ($valor) {
     return htmlspecialchars(
@@ -38,19 +65,23 @@ $esc = static function ($valor) {
         'UTF-8'
     );
 };
+
+// Cargar encabezado de la plataforma.
+
+require_once __DIR__ . '/../layouts/header.php';
+
 ?>
 
-<!-- ESTILOS DE LA PORTADA ROMÁNTICA -->
+<!-- ESTILOS DE LA PORTADA -->
 
 <link
     rel="stylesheet"
     href="css/portada-romantica.css?v=4"
 >
 
-
-<!-- ===================================== -->
-<!-- PORTADA PRINCIPAL                     -->
-<!-- ===================================== -->
+<!-- ====================================== -->
+<!-- PORTADA PRINCIPAL                      -->
+<!-- ====================================== -->
 
 <section
     class="ri-hero"
@@ -64,8 +95,10 @@ $esc = static function ($valor) {
         </span>
 
         <h1 id="ri-hero-titulo">
+
             Haz de tus <em>15 años</em>
             un recuerdo inolvidable
+
         </h1>
 
         <p>
@@ -76,19 +109,17 @@ $esc = static function ($valor) {
         <div class="ri-hero-acciones">
 
             <a
-                class="ri-boton ri-boton-primario"
                 href="#directorio-proveedores"
+                class="ri-boton ri-boton-primario"
             >
                 Explorar proveedores
             </a>
 
-            <!-- EVENTOS: SOLO ADMINISTRADOR -->
-
             <?php if ($esAdministradorProveedor): ?>
 
                 <a
-                    class="ri-boton ri-boton-secundario"
                     href="index.php?controller=evento&amp;action=index"
+                    class="ri-boton ri-boton-secundario"
                 >
                     Ver eventos
                 </a>
@@ -99,23 +130,24 @@ $esc = static function ($valor) {
 
     </div>
 
-    <!-- ILUSTRACIÓN DE 15 AÑOS -->
-
     <div
         class="ri-hero-ilustracion"
         aria-hidden="true"
     >
+
         <span>✦</span>
+
         <strong>15</strong>
+
         <span>✦</span>
+
     </div>
 
 </section>
 
-
-<!-- ===================================== -->
-<!-- DIRECTORIO DE PROVEEDORES             -->
-<!-- ===================================== -->
+<!-- ====================================== -->
+<!-- DIRECTORIO DE PROVEEDORES               -->
+<!-- ====================================== -->
 
 <section
     class="ri-directorio"
@@ -142,8 +174,7 @@ $esc = static function ($valor) {
 
         </div>
 
-
-        <!-- CREAR PROVEEDOR: SOLO ADMINISTRADOR -->
+        <!-- CREAR PROVEEDOR -->
 
         <?php if ($esAdministradorProveedor): ?>
 
@@ -158,10 +189,9 @@ $esc = static function ($valor) {
 
     </div>
 
-
-    <!-- ================================= -->
-    <!-- TARJETAS DE PROVEEDORES           -->
-    <!-- ================================= -->
+    <!-- ================================== -->
+    <!-- TARJETAS DE PROVEEDORES            -->
+    <!-- ================================== -->
 
     <div class="ri-proveedores-grid">
 
@@ -171,13 +201,19 @@ $esc = static function ($valor) {
 
                 <?php
 
-                // ==================================
-                // NOMBRE DEL PROVEEDOR
-                // ==================================
+                // ID del proveedor.
+
+                $id_proveedor = (int) (
+                    $p['id_proveedor']
+                    ?? $p['id']
+                    ?? 0
+                );
+
+                // Nombre comercial.
 
                 $nombre_proveedor = '';
 
-                $posibles_campos = [
+                $posiblesNombres = [
                     'nombre_comercial',
                     'nombre_empresa',
                     'empresa',
@@ -187,12 +223,14 @@ $esc = static function ($valor) {
                     'titulo'
                 ];
 
-                foreach ($posibles_campos as $campo) {
+                foreach ($posiblesNombres as $campo) {
 
                     if (!empty($p[$campo])) {
+
                         $nombre_proveedor = trim(
                             (string) $p[$campo]
                         );
+
                         break;
                     }
 
@@ -202,10 +240,7 @@ $esc = static function ($valor) {
                     $nombre_proveedor = 'Proveedor sin nombre';
                 }
 
-
-                // ==================================
-                // CATEGORÍA
-                // ==================================
+                // Categoría.
 
                 $categoria_proveedor = 'Proveedor';
 
@@ -218,28 +253,24 @@ $esc = static function ($valor) {
                 ) {
 
                     if (!empty($p[$campo])) {
+
                         $categoria_proveedor = trim(
                             (string) $p[$campo]
                         );
+
                         break;
                     }
 
                 }
 
-
-                // ==================================
-                // DESCRIPCIÓN
-                // ==================================
+                // Descripción.
 
                 $descripcion_proveedor =
                     $p['descripcion']
                     ?? $p['descripcion_servicio']
                     ?? 'Sin descripción disponible';
 
-
-                // ==================================
-                // DIRECCIÓN
-                // ==================================
+                // Dirección.
 
                 $direccion_proveedor =
                     !empty($p['direccion'])
@@ -249,10 +280,7 @@ $esc = static function ($valor) {
                         ?? 'Sin dirección registrada'
                     );
 
-
-                // ==================================
-                // TELÉFONO
-                // ==================================
+                // Teléfono informativo.
 
                 $telefono_proveedor =
                     !empty($p['telefono'])
@@ -262,10 +290,7 @@ $esc = static function ($valor) {
                         ?? 'Sin teléfono registrado'
                     );
 
-
-                // ==================================
-                // CORREO ELECTRÓNICO
-                // ==================================
+                // Correo electrónico.
 
                 $correo_proveedor =
                     !empty($p['email'])
@@ -281,39 +306,7 @@ $esc = static function ($valor) {
                     FILTER_VALIDATE_EMAIL
                 );
 
-
-                // ==================================
-                // IDENTIFICADOR
-                // ==================================
-
-                $id_proveedor =
-                    $p['id_proveedor']
-                    ?? $p['id']
-                    ?? '';
-
-
-                // ==================================
-                // PRECIO
-                // ==================================
-
-                /*
-                 * Los proveedores que no tengan un
-                 * precio definido se envían al carrito
-                 * con valor 0, que allí se mostrará
-                 * como "Por cotizar".
-                 */
-
-                $precio_proveedor =
-                    isset($p['precio']) &&
-                    is_numeric($p['precio']) &&
-                    (float) $p['precio'] > 0
-                    ? (float) $p['precio']
-                    : 0;
-
-
-                // ==================================
-                // IMAGEN DE LA TARJETA
-                // ==================================
+                // Imagen de la tarjeta.
 
                 $imagen_proveedor = $imagenes[
                     $indice_proveedor % count($imagenes)
@@ -323,13 +316,11 @@ $esc = static function ($valor) {
 
                 ?>
 
-
-                <!-- ============================= -->
-                <!-- TARJETA INDIVIDUAL            -->
-                <!-- ============================= -->
+                <!-- =============================== -->
+                <!-- TARJETA INDIVIDUAL              -->
+                <!-- =============================== -->
 
                 <article class="ri-proveedor-card">
-
 
                     <!-- IMAGEN -->
 
@@ -343,13 +334,14 @@ $esc = static function ($valor) {
 
                     </div>
 
-
                     <!-- CATEGORÍA -->
 
                     <div class="ri-proveedor-superior">
 
                         <span class="ri-categoria">
+
                             <?= $esc($categoria_proveedor) ?>
+
                         </span>
 
                         <?php if (
@@ -365,7 +357,6 @@ $esc = static function ($valor) {
 
                     </div>
 
-
                     <!-- INFORMACIÓN -->
 
                     <div class="ri-proveedor-contenido">
@@ -377,7 +368,6 @@ $esc = static function ($valor) {
                         <p class="ri-descripcion">
                             <?= $esc($descripcion_proveedor) ?>
                         </p>
-
 
                         <!-- DIRECCIÓN -->
 
@@ -391,7 +381,6 @@ $esc = static function ($valor) {
 
                         </p>
 
-
                         <!-- TELÉFONO -->
 
                         <p class="ri-dato">
@@ -403,7 +392,6 @@ $esc = static function ($valor) {
                             <?= $esc($telefono_proveedor) ?>
 
                         </p>
-
 
                         <!-- CORREO -->
 
@@ -422,121 +410,93 @@ $esc = static function ($valor) {
 
                     </div>
 
-
-                    <!-- ========================= -->
-                    <!-- BOTONES DEL PROVEEDOR     -->
-                    <!-- ========================= -->
+                    <!-- ================================== -->
+                    <!-- BOTONES DEL PROVEEDOR              -->
+                    <!-- ================================== -->
 
                     <div class="ri-proveedor-acciones">
 
+                        <!-- ============================== -->
+                        <!-- CONTACTO POR WHATSAPP          -->
+                        <!-- ============================== -->
 
-                        <!-- SOLICITAR COTIZACIÓN -->
+                        <!--
+                            El formulario envía los datos
+                            a SolicitudContactoController.
 
-                        <?php if ($correo_valido): ?>
+                            El controlador registra el
+                            intento en solicitudes_contacto.
 
-                            <?php
-
-                            $asunto = 'Solicitud de cotización - Recuerdos Inolvidables';
-
-                            $mensaje = 'Hola, deseo solicitar una cotización para el servicio de '
-                                . $nombre_proveedor
-                                . '. Agradezco información sobre precios y condiciones.';
-
-                            $enlace_cotizacion =
-                                'mailto:' . $correo_proveedor
-                                . '?subject=' . rawurlencode($asunto)
-                                . '&body=' . rawurlencode($mensaje);
-
-                            ?>
-
-                            <a
-                                class="ri-boton ri-boton-primario"
-                                href="<?= $esc($enlace_cotizacion) ?>"
-                            >
-                                Solicitar cotización
-                            </a>
-
-                        <?php else: ?>
-
-                            <span
-                                class="ri-boton ri-boton-primario"
-                                style="opacity:.65; cursor:not-allowed;"
-                            >
-                                Correo no disponible
-                            </span>
-
-                        <?php endif; ?>
-
-
-                        <!-- AGREGAR AL CARRITO -->
+                            Después redirige a WhatsApp
+                            con el mensaje preparado.
+                        -->
 
                         <form
-                            action="index.php?controller=carrito&amp;action=agregar"
+                            action="index.php?controller=solicitudContacto&amp;action=registrar"
                             method="POST"
+                            target="_blank"
                         >
 
-                            <!-- ID -->
+                            <!-- PROVEEDOR SELECCIONADO -->
+
+                            <input
+                                type="hidden"
+                                name="id_proveedor"
+                                value="<?= $id_proveedor ?>"
+                            >
+
+                            <!-- TOKEN DE SEGURIDAD -->
+
+                            <input
+                                type="hidden"
+                                name="csrf"
+                                value="<?= $esc($_SESSION['contacto_csrf']) ?>"
+                            >
+
+                            <!-- BOTÓN DE SOLICITUD -->
+
+                            <button
+                                type="submit"
+                                class="ri-boton ri-boton-primario"
+                            >
+                                Solicitar información por WhatsApp
+                            </button>
+
+                        </form>
+
+                        <!-- ============================== -->
+                        <!-- GUARDAR EN MIS NOTAS            -->
+                        <!-- ============================== -->
+
+                        <form
+                            action="index.php?controller=nota&amp;action=agregar"
+                            method="POST"
+                        >
 
                             <input
                                 type="hidden"
                                 name="id"
-                                value="<?= $esc($id_proveedor) ?>"
+                                value="<?= $id_proveedor ?>"
                             >
-
-
-                            <!-- NOMBRE -->
 
                             <input
                                 type="hidden"
-                                name="nombre"
-                                value="<?= $esc($nombre_proveedor) ?>"
+                                name="csrf"
+                                value="<?= $esc($_SESSION['notas_csrf']) ?>"
                             >
-
-
-                            <!-- PRECIO -->
-
-                            <input
-                                type="hidden"
-                                name="precio"
-                                value="<?= $esc($precio_proveedor) ?>"
-                            >
-
-
-                            <!-- CORREO DEL PROVEEDOR -->
-
-                            <input
-                                type="hidden"
-                                name="correo"
-                                value="<?= $esc(
-                                    $correo_valido
-                                        ? $correo_proveedor
-                                        : ''
-                                ) ?>"
-                            >
-
-
-                            <!-- CANTIDAD INICIAL -->
-
-                            <input
-                                type="hidden"
-                                name="cantidad"
-                                value="1"
-                            >
-
 
                             <button
                                 type="submit"
                                 class="ri-boton ri-boton-carrito"
                             >
-                                Agregar al carrito
+                                Guardar en mis notas
                             </button>
 
                         </form>
 
-
-                        <!-- ===================== -->
-                        <!-- ADMINISTRACIÓN        -->
-                        <!-- ===================== -->
+                        <!-- ============================== -->
+                        <!-- OPCIONES ADMINISTRATIVAS       -->
+                        <!-- ============================== -->
 
                         <?php if ($esAdministradorProveedor): ?>
 
@@ -545,20 +505,15 @@ $esc = static function ($valor) {
                                 <!-- EDITAR -->
 
                                 <a
-                                    href="index.php?controller=proveedor&amp;action=editar&amp;id=<?= urlencode(
-                                        (string) $id_proveedor
-                                    ) ?>"
+                                    href="index.php?controller=proveedor&amp;action=editar&amp;id=<?= $id_proveedor ?>"
                                 >
                                     Editar
                                 </a>
 
-
                                 <!-- ELIMINAR -->
 
                                 <a
-                                    href="index.php?controller=proveedor&amp;action=eliminar&amp;id=<?= urlencode(
-                                        (string) $id_proveedor
-                                    ) ?>"
+                                    href="index.php?controller=proveedor&amp;action=eliminar&amp;id=<?= $id_proveedor ?>"
                                     onclick="return confirm('¿Seguro que deseas eliminar este proveedor?');"
                                 >
                                     Eliminar
@@ -587,10 +542,9 @@ $esc = static function ($valor) {
 
 </section>
 
-
-<!-- ===================================== -->
-<!-- BENEFICIOS DE LA PLATAFORMA           -->
-<!-- ===================================== -->
+<!-- ====================================== -->
+<!-- BENEFICIOS DE RECUERDOS INOLVIDABLES   -->
+<!-- ====================================== -->
 
 <section
     class="ri-beneficios"
@@ -610,7 +564,6 @@ $esc = static function ($valor) {
 
     </div>
 
-
     <div>
 
         <strong>
@@ -623,7 +576,6 @@ $esc = static function ($valor) {
         </p>
 
     </div>
-
 
     <div>
 
@@ -639,7 +591,6 @@ $esc = static function ($valor) {
     </div>
 
 </section>
-
 
 <?php
 require_once __DIR__ . '/../layouts/footer.php';

@@ -188,8 +188,8 @@ $rutaLogo = '/recuerdos_inolvidables/public/img/logo_recuerdos_sin_fondo.png';
                     <!-- CARRITO -->
 
                     <li>
-                        <a href="index.php?controller=carrito&amp;action=index">
-                            🛒 Carrito
+                        <a href="index.php?controller=nota&amp;action=index">
+                            📒 Mis notas
                         </a>
                     </li>
 
