@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="es">
 
@@ -185,13 +182,15 @@ $rutaLogo = '/recuerdos_inolvidables/public/img/logo_recuerdos_sin_fondo.png';
 
                     <?php endif; ?>
 
-                    <!-- CARRITO -->
+                    <!-- CARRITO / MIS NOTAS (VISIBLE SOLO PARA CLIENTES/COMPRADORES O VISITANTES) -->
 
-                    <li>
-                        <a href="index.php?controller=nota&amp;action=index">
-                            📒 Mis notas
-                        </a>
-                    </li>
+                    <?php if (!$esAdministrador && !$esProveedor): ?>
+                        <li>
+                            <a href="index.php?controller=nota&amp;action=index">
+                                📒 Mis notas
+                            </a>
+                        </li>
+                    <?php endif; ?>
 
                     <!-- OPCIONES ADMINISTRATIVAS -->
 

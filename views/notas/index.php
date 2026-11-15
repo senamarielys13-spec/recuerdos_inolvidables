@@ -1,4 +1,3 @@
-
 <?php
 require_once __DIR__ . '/../layouts/header.php';
 
@@ -43,8 +42,7 @@ $esc = static function ($value): string {
 
 .ri-notas-grid {
     display: grid;
-    grid-template-columns:
-        repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
     gap: 18px;
 }
 
@@ -109,6 +107,7 @@ $esc = static function ($value): string {
     color: white;
     text-decoration: none;
     display: inline-block;
+    text-align: center;
 }
 
 .ri-nota-boton-secundario {
@@ -144,23 +143,11 @@ $esc = static function ($value): string {
     <?php if (empty($notas)): ?>
 
         <div class="ri-nota-vacia">
-
-            <h2>
-                Aún no tienes proveedores guardados
-            </h2>
-
-            <p>
-                Explora el directorio y selecciona
-                «Guardar en mis notas».
-            </p>
-
-            <a
-                class="ri-nota-boton"
-                href="index.php?controller=proveedor&amp;action=index"
-            >
+            <h2>Aún no tienes proveedores guardados</h2>
+            <p>Explora el directorio y selecciona «Guardar en mis notas».</p>
+            <a class="ri-nota-boton" href="index.php?controller=proveedor&amp;action=index">
                 Explorar proveedores
             </a>
-
         </div>
 
     <?php else: ?>
@@ -171,54 +158,24 @@ $esc = static function ($value): string {
 
                 <article class="ri-nota">
 
-                    <h2>
-                        <?= $esc($nota['nombre_comercial']) ?>
-                    </h2>
+                    <h2><?= $esc($nota['nombre_comercial']) ?></h2>
 
-                    <p>
-                        <?= $esc($nota['descripcion']) ?>
-                    </p>
+                    <p><?= $esc($nota['descripcion']) ?></p>
 
                     <?php if (!empty($nota['telefono'])): ?>
-
-                        <p>
-                            <strong>Teléfono:</strong>
-                            <?= $esc($nota['telefono']) ?>
-                        </p>
-
+                        <p><strong>Teléfono:</strong> <?= $esc($nota['telefono']) ?></p>
                     <?php endif; ?>
 
                     <?php if (!empty($nota['email'])): ?>
-
-                        <p>
-                            <strong>Correo:</strong>
-                            <?= $esc($nota['email']) ?>
-                        </p>
-
+                        <p><strong>Correo:</strong> <?= $esc($nota['email']) ?></p>
                     <?php endif; ?>
 
-                    <!-- GUARDAR OBSERVACIÓN -->
+                    <!-- FORMULARIO GUARDAR OBSERVACIÓN -->
+                    <form method="post" action="index.php?controller=nota&amp;action=guardar">
+                        <input type="hidden" name="csrf" value="<?= $esc($_SESSION['notas_csrf'] ?? '') ?>">
+                        <input type="hidden" name="id_nota" value="<?= (int) $nota['id_nota'] ?>">
 
-                    <form
-                        method="post"
-                        action="index.php?controller=nota&amp;action=guardar"
-                    >
-
-                        <input
-                            type="hidden"
-                            name="csrf"
-                            value="<?= $esc($_SESSION['notas_csrf']) ?>"
-                        >
-
-                        <input
-                            type="hidden"
-                            name="id_nota"
-                            value="<?= (int) $nota['id_nota'] ?>"
-                        >
-
-                        <label
-                            for="observacion-<?= (int) $nota['id_nota'] ?>"
-                        >
+                        <label for="observacion-<?= (int) $nota['id_nota'] ?>">
                             Mi nota personal
                         </label>
 
@@ -227,52 +184,64 @@ $esc = static function ($value): string {
                             name="observacion"
                             maxlength="2000"
                             placeholder="Ejemplo: consultar disponibilidad, fecha y condiciones."
-                        ><?= $esc($nota['observacion']) ?></textarea>
+                        ><?= $esc($nota['observacion'] ?? '') ?></textarea>
 
                         <div class="ri-nota-acciones">
-
-                            <button
-                                class="ri-nota-boton"
-                                type="submit"
-                            >
+                            <button class="ri-nota-boton" type="submit">
                                 Guardar nota
                             </button>
-
                         </div>
-
                     </form>
 
-                    <!-- ELIMINAR NOTA -->
+                    <!-- BOTÓN DE WHATSAPP CON NÚMERO FIJO OBLIGATORIO -->
+                    <?php 
+                        // AQUÍ DEFINES EL NÚMERO AL QUE SIEMPRE DEBE LLEGAR (Incluye código de país, ej: 57 para Colombia)
+                        $telefonoFijoDestino = "573132165342"; 
+                        
+                        $textoInicial = "Hola, estoy visitando Recuerdos Inolvidables y me interesa el servicio de " . $nota['nombre_comercial'] . ".";
+                        $observacionTexto = trim((string)($nota['observacion'] ?? ''));
+                        $notaActual = $observacionTexto !== '' ? " Mi nota personal: " . $observacionTexto : "";
+                        $urlWp = "https://api.whatsapp.com/send?phone=" . $telefonoFijoDestino . "&text=" . urlencode($textoInicial . $notaActual);
+                    ?>
+                    <div class="ri-notas-acciones">
+                        <a 
+                            id="btn-wsp-<?= (int) $nota['id_nota'] ?>"
+                            class="ri-nota-boton" 
+                            style="background: #25d366; color: white; width: 100%;" 
+                            href="<?= $esc($urlWp) ?>" 
+                            target="_blank"
+                        >
+                            Solicitar por WhatsApp con mi nota
+                        </a>
+                    </div>
 
-                    <form
-                        method="post"
+                    <script>
+                    document.getElementById('observacion-<?= (int) $nota['id_nota'] ?>').addEventListener('input', function() {
+                        let notaTexto = this.value.trim();
+                        let baseTexto = "Hola, estoy visitando Recuerdos Inolvidables y me interesa el servicio de <?= addslashes($nota['nombre_comercial']) ?>.";
+                        if (notaTexto !== "") {
+                            baseTexto += " Mi nota personal: " + notaTexto;
+                        }
+                        let url = "https://api.whatsapp.com/send?phone=<?= $telefonoFijoDestino ?>&text=" + encodeURIComponent(baseTexto);
+                        document.getElementById('btn-wsp-<?= (int) $nota['id_nota'] ?>').setAttribute('href', url);
+                    });
+                    </script>
+
+                    <!-- ELIMINAR NOTA -->
+                    <form 
+                        method="post" 
                         action="index.php?controller=nota&amp;action=eliminar"
                         onsubmit="return confirm('¿Eliminar este proveedor de tus notas?');"
+                        style="margin-top: 10px;"
                     >
-
-                        <input
-                            type="hidden"
-                            name="csrf"
-                            value="<?= $esc($_SESSION['notas_csrf']) ?>"
-                        >
-
-                        <input
-                            type="hidden"
-                            name="id_nota"
-                            value="<?= (int) $nota['id_nota'] ?>"
-                        >
+                        <input type="hidden" name="csrf" value="<?= $esc($_SESSION['notas_csrf'] ?? '') ?>">
+                        <input type="hidden" name="id_nota" value="<?= (int) $nota['id_nota'] ?>">
 
                         <div class="ri-nota-acciones">
-
-                            <button
-                                class="ri-nota-boton ri-nota-boton-secundario"
-                                type="submit"
-                            >
+                            <button class="ri-nota-boton ri-nota-boton-secundario" type="submit" style="width: 100%;">
                                 Eliminar de mis notas
                             </button>
-
                         </div>
-
                     </form>
 
                 </article>
