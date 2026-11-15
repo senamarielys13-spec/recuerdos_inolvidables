@@ -12,8 +12,12 @@ class ProveedorController {
         $this->modelo = new Proveedor();
     }
 
-    private function verificarAdmin() {
-        if (!isset($_SESSION['user_rol']) || ($_SESSION['user_rol'] != 1 && ($_SESSION['user_rol_nombre'] ?? '') !== 'Administrador')) {
+    private function verificarPermiso() {
+        $rol = isset($_SESSION['user_rol']) ? (int)$_SESSION['user_rol'] : 0;
+        $nombreRol = $_SESSION['user_rol_nombre'] ?? '';
+        
+        // Permitir acceso si es Administrador (1) o Proveedor (3)
+        if ($rol !== 1 && $rol !== 3 && $nombreRol !== 'Administrador' && $nombreRol !== 'Proveedor') {
             header("Location: index.php?controller=proveedor&action=index");
             exit();
         }
@@ -25,17 +29,24 @@ class ProveedorController {
     }
 
     public function crear() {
-        $this->verificarAdmin();
+        $this->verificarPermiso();
         require_once __DIR__ . '/../views/proveedores/crear.php';
     }
 
     public function guardar() {
-        $this->verificarAdmin();
+        $this->verificarPermiso();
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $datos = $_POST;
+            
+            // Si es proveedor, asociamos automáticamente su ID de usuario de la sesión
+            $rol = isset($_SESSION['user_rol']) ? (int)$_SESSION['user_rol'] : 0;
+            if ($rol === 3) {
+                $datos['id_usuario'] = $_SESSION['user_id'] ?? null;
+            }
+
             // Capturamos el nombre ingresado y lo asignamos a todos los nombres posibles de columna
-            $nombre_ingresado = trim($_POST['nombre_empresa'] ?? $_POST['nombre'] ?? '');
+            $nombre_ingresado = trim($_POST['nombre_empresa'] ?? $_POST['nombre'] ?? $_POST['nombre_comercial'] ?? '');
             $datos['nombre'] = $nombre_ingresado;
             $datos['nombre_empresa'] = $nombre_ingresado;
             $datos['nombre_comercial'] = $nombre_ingresado;
@@ -47,7 +58,7 @@ class ProveedorController {
     }
 
     public function editar() {
-        $this->verificarAdmin();
+        $this->verificarPermiso();
         
         $id = $_GET['id'] ?? null;
         if ($id) {
@@ -65,14 +76,13 @@ class ProveedorController {
     }
 
     public function actualizar() {
-        $this->verificarAdmin();
+        $this->verificarPermiso();
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id_proveedor'] ?? $_POST['id'] ?? null; 
             if ($id) {
                 $datos = $_POST;
-                // Asignamos el valor a todas las variantes para asegurar que la consulta SQL lo reciba
-                $nombre_ingresado = trim($_POST['nombre_empresa'] ?? $_POST['nombre'] ?? '');
+                $nombre_ingresado = trim($_POST['nombre_empresa'] ?? $_POST['nombre'] ?? $_POST['nombre_comercial'] ?? '');
                 $datos['nombre'] = $nombre_ingresado;
                 $datos['nombre_empresa'] = $nombre_ingresado;
                 $datos['nombre_comercial'] = $nombre_ingresado;
@@ -85,7 +95,7 @@ class ProveedorController {
     }
 
     public function eliminar() {
-        $this->verificarAdmin();
+        $this->verificarPermiso();
         
         $id = $_GET['id'] ?? null;
         if ($id) {

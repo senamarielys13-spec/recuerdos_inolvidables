@@ -1,4 +1,3 @@
-
 <?php
 
 /*
@@ -9,7 +8,7 @@
  * 1. Mostrar el directorio de proveedores.
  * 2. Registrar intentos de contacto por WhatsApp.
  * 3. Guardar proveedores en Mis notas.
- * 4. Mostrar herramientas al administrador.
+ * 4. Mostrar herramientas al administrador y proveedor.
  */
 
 // Iniciar sesión cuando sea necesario.
@@ -34,11 +33,12 @@ if (empty($_SESSION['contacto_csrf'])) {
     );
 }
 
-// Identificar la cuenta administrativa.
+// Identificar si es Administrador (1) o Proveedor (3).
 
+$rolActual = (int) ($_SESSION['user_rol'] ?? 0);
 $esAdministradorProveedor =
     !empty($_SESSION['user_id']) &&
-    (int) ($_SESSION['user_rol'] ?? 0) === 1;
+    ($rolActual === 1 || $rolActual === 3);
 
 // Imágenes de las nueve tarjetas.
 
@@ -146,7 +146,7 @@ require_once __DIR__ . '/../layouts/header.php';
 </section>
 
 <!-- ====================================== -->
-<!-- DIRECTORIO DE PROVEEDORES               -->
+<!-- DIRECTORIO DE PROVEEDORES              -->
 <!-- ====================================== -->
 
 <section
@@ -420,17 +420,6 @@ require_once __DIR__ . '/../layouts/header.php';
                         <!-- CONTACTO POR WHATSAPP          -->
                         <!-- ============================== -->
 
-                        <!--
-                            El formulario envía los datos
-                            a SolicitudContactoController.
-
-                            El controlador registra el
-                            intento en solicitudes_contacto.
-
-                            Después redirige a WhatsApp
-                            con el mensaje preparado.
-                        -->
-
                         <form
                             action="index.php?controller=solicitudContacto&amp;action=registrar"
                             method="POST"
@@ -465,7 +454,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         </form>
 
                         <!-- ============================== -->
-                        <!-- GUARDAR EN MIS NOTAS            -->
+                        <!-- GUARDAR EN MIS NOTAS           -->
                         <!-- ============================== -->
 
                         <form

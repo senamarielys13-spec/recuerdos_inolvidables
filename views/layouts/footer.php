@@ -1,4 +1,3 @@
-
 <?php
 
 $rolFooter = isset($_SESSION['user_id'])
@@ -24,7 +23,7 @@ $esProveedorFooter = $rolFooter === 3;
 
         <div class="ri-footer-columna">
 
-            <h3>Recuerdos Inolvidables 15</h3>
+            <h3>Recuerdos Inolvidables </h3>
 
             <p>
                 Encuentra opciones para hacer de tu
@@ -55,17 +54,12 @@ $esProveedorFooter = $rolFooter === 3;
                 </li>
 
                 <li>
-                    <a href="index.php?controller=proveedor&amp;action=index">
-                        Proveedores
-                    </a>
-                </li>
-
-                <li>
                     <a href="index.php?controller=servicio&amp;action=index">
                         Productos y servicios
                     </a>
                 </li>
 
+                <!-- ESTOS ENLACES DE ADMINISTRACIÓN SOLO APARECEN PARA EL ADMIN -->
                 <?php if ($esAdminFooter): ?>
 
                     <li>
@@ -113,7 +107,7 @@ $esProveedorFooter = $rolFooter === 3;
 
                 <p>
                     <span aria-hidden="true">☎</span>
-                    +57 322 4800189
+                    +57 313 2165342
                 </p>
 
                 <p>
@@ -132,9 +126,9 @@ $esProveedorFooter = $rolFooter === 3;
     <div class="ri-footer-inferior">
 
         &copy; <?= date('Y') ?>
-        Recuerdos Inolvidables 15 —
+        Recuerdos Inolvidables —
         Todos los derechos reservados.
-        Valentina Forero - Marielys Azocar
+        Marielys Azocar - Valentina Forero
 
     </div>
 

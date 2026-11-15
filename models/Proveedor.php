@@ -44,6 +44,10 @@ class Proveedor {
         }
     }
 
+    public function registrar($datos) {
+        return $this->crear($datos);
+    }
+
     public function actualizar($id, $datos) {
         try {
             $sql = "UPDATE " . $this->table_name . " SET 
